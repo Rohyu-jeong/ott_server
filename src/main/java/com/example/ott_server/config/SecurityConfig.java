@@ -44,7 +44,7 @@ public class SecurityConfig{
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
-
+//
     // SecurityFilterChain 설정
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
