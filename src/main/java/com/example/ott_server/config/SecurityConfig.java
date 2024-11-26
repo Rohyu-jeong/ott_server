@@ -22,21 +22,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig{
 
-    // 사용자 세부 정보 로드
     @Autowired
     private UserDetailsService userDetailsService;
 
-    // JWTFilter
     @Autowired
     private JWTFilter jwtFilter;
 
-    // 비밀번호 암호화
     @Bean
     public PasswordEncoder passwordEncoder () {
         return new BCryptPasswordEncoder();
     }
 
-    // 인증 제공자 설정
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -44,31 +40,35 @@ public class SecurityConfig{
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
-//
-    // SecurityFilterChain 설정
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
+                .authorizeHttpRequests(authorize -> {
+                    // 기존 코드: 인증이 필요한 설정 (주석처리)
+                    /*
+                    authorize
                         .requestMatchers("/auth/login", "/member/add").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/member/changePassword/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/memberprofile/changePassword/**").authenticated()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated();
+                    */
+
+                    // 테스트용: 모든 요청 인증 없이 허용
+                    authorize.anyRequest().permitAll();
+                })
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // AuthenticationManager 빈 설정 (인증 관리자 설정)
     @Bean
     public AuthenticationManager authenticationManagerBean(HttpSecurity http) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
                 .authenticationProvider(authenticationProvider())
                 .build();
     }
-
 }
